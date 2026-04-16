@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator Stok Akrab V3</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:'Poppins',sans-serif;
+  background:#0e0e0f;
+  color:#fff;
+  padding:10px;
+}
+
+.wrap{
+  max-width:800px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.card{
+  background:#151515;
+  border-radius:14px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.05);
+}
+
+/* PRODUK */
+.products{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.product{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  background:#101010;
+  padding:8px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.05);
+}
+
+.product-name{
+  flex:1;
+  font-size:11px;
+  font-weight:600;
+  color:#fff;
+}
+
+/* BUTTON STATUS */
+.status{
+  border:none;
+  border-radius:8px;
+  padding:7px 10px;
+  font-size:10px;
+  font-weight:700;
+  cursor:pointer;
+  background:#262626;
+  color:#bbb;
+  min-width:70px;
+}
+
+.status.active.ready{
+  background:#16361f;
+  color:#7df0a0;
+}
+
+.status.active.empty{
+  background:#3a1717;
+  color:#ff8b8b;
+}
+
+/* BUTTON */
+.btn{
+  border:none;
+  border-radius:10px;
+  padding:10px;
+  font-size:11px;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.btn-add{
+  width:100%;
+  background:#f4cf43;
+  color:#111;
+  margin-top:6px;
+}
+
+.actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  margin-top:8px;
+}
+
+.copy{background:#fff;color:#111}
+.wa{background:#25D366;color:#fff}
+
+/* PREVIEW */
+.preview{
+  white-space:pre-wrap;
+  font-size:12px;
+  background:#0d0d0d;
+  padding:12px;
+  border-radius:10px;
+  min-height:260px;
+  line-height:1.6;
+}
+
+@media(max-width:700px){
+  .wrap{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <!-- LIST PRODUK -->
+  <div class="card">
+    <div class="products" id="products"></div>
+
+    <div class="actions">
+      <button class="btn copy" onclick="copyText()">Copy</button>
+      <button class="btn wa" onclick="sendWA()">Kirim WA</button>
+    </div>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="card">
+    <div class="preview" id="preview"></div>
+  </div>
+
+</div>
+
+<script>
+const productsEl = document.getElementById('products');
+const preview = document.getElementById('preview');
+
+/* DATA FIX PRODUK + HARGA */
+const data = [
+  {name:"Super Mini V3", price:"50.000", status:"Habis"},
+  {name:"Mini V3", price:"62.000", status:"Tersedia"},
+  {name:"Big V3", price:"67.000", status:"Habis"},
+  {name:"Jumbo V3", price:"77.000", status:"Habis"},
+  {name:"Jumbo Big V3", price:"85.000", status:"Tersedia"},
+  {name:"Jumbo Max V3", price:"90.000", status:"Tersedia"},
+  {name:"Super Jumbo V3", price:"102.000", status:"Habis"}
+];
+
+/* STATUS */
+function getStatus(s){
+  if(s==="Tersedia"){
+    return {icon:"🟢",text:"Tersedia",prefix:"✅"}
+  }
+  return {icon:"🔴",text:"Habis",prefix:"❌"}
+}
+
+/* ROW */
+function createRow(d){
+  const el = document.createElement('div');
+  el.className='product';
+  el.dataset.status = d.status;
+
+  el.innerHTML = `
+    <div class="product-name">${d.name}</div>
+    <button class="status ready" data="Tersedia">Tersedia</button>
+    <button class="status empty" data="Habis">Habis</button>
+  `;
+
+  el.querySelectorAll('.status').forEach(btn=>{
+    btn.onclick = ()=>{
+      el.dataset.status = btn.getAttribute('data');
+      updateBtn(el);
+      update();
+    }
+  });
+
+  productsEl.appendChild(el);
+  updateBtn(el);
+}
+
+/* UPDATE BUTTON */
+function updateBtn(el){
+  const s = el.dataset.status;
+  el.querySelectorAll('.status').forEach(b=>{
+    b.classList.remove('active');
+    if(b.getAttribute('data')===s){
+      b.classList.add('active');
+    }
+  });
+}
+
+/* DATE */
+function date(){
+  return new Intl.DateTimeFormat('id-ID',{
+    weekday:'long',day:'numeric',month:'long',year:'numeric',
+    timeZone:'Asia/Jakarta'
+  }).format(new Date());
+}
+
+function time(){
+  return new Intl.DateTimeFormat('id-ID',{
+    hour:'2-digit',minute:'2-digit',second:'2-digit',
+    hour12:false,timeZone:'Asia/Jakarta'
+  }).format(new Date());
+}
+
+/* GENERATE */
+function generate(){
+  let msg = "🔄 UPDATE STOK AKRAB V3 🔄\n";
+  msg += "🗓️ "+date()+"\n";
+  msg += "⏰Jam, "+time()+" WIB\n";
+  msg += "──────────────────────\n\n";
+
+  document.querySelectorAll('.product').forEach((el,i)=>{
+    const p = data[i];
+    const s = getStatus(el.dataset.status);
+
+    msg += `${s.prefix} *${p.name}*\n`;
+    msg += `┝ Harga: ${p.price}\n`;
+    msg += `┝ Stok: ${s.icon} ${s.text}\n\n`;
+  });
+
+  msg += "──────────────────────\n";
+  msg += "Stok terbatas, order sekarang juga.";
+
+  return msg;
+}
+
+/* UPDATE */
+function update(){
+  preview.textContent = generate();
+}
+
+/* COPY */
+function copyText(){
+  navigator.clipboard.writeText(generate());
+  alert("Copied");
+}
+
+/* WA */
+function sendWA(){
+  window.open("https://wa.me/?text="+encodeURIComponent(generate()),"_blank");
+}
+
+/* INIT */
+data.forEach(createRow);
+update();
+setInterval(update,1000);
+</script>
+
+</body>
+</html>
