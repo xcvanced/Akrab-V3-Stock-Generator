@@ -32,7 +32,6 @@ body{
   border:1px solid rgba(255,255,255,.05);
 }
 
-/* PRODUK */
 .products{
   display:flex;
   flex-direction:column;
@@ -56,7 +55,6 @@ body{
   color:#fff;
 }
 
-/* BUTTON STATUS */
 .status{
   border:none;
   border-radius:8px;
@@ -79,7 +77,6 @@ body{
   color:#ff8b8b;
 }
 
-/* BUTTON */
 .btn{
   border:none;
   border-radius:10px;
@@ -87,13 +84,6 @@ body{
   font-size:11px;
   font-weight:700;
   cursor:pointer;
-}
-
-.btn-add{
-  width:100%;
-  background:#f4cf43;
-  color:#111;
-  margin-top:6px;
 }
 
 .actions{
@@ -106,7 +96,6 @@ body{
 .copy{background:#fff;color:#111}
 .wa{background:#25D366;color:#fff}
 
-/* PREVIEW */
 .preview{
   white-space:pre-wrap;
   font-size:12px;
@@ -127,7 +116,6 @@ body{
 
 <div class="wrap">
 
-  <!-- LIST PRODUK -->
   <div class="card">
     <div class="products" id="products"></div>
 
@@ -137,7 +125,6 @@ body{
     </div>
   </div>
 
-  <!-- PREVIEW -->
   <div class="card">
     <div class="preview" id="preview"></div>
   </div>
@@ -148,7 +135,8 @@ body{
 const productsEl = document.getElementById('products');
 const preview = document.getElementById('preview');
 
-/* DATA FIX PRODUK + HARGA */
+const STORAGE_KEY = "akrab_v3_stock_daily_0600";
+
 const data = [
   {name:"Super Mini V3", price:"50.000", status:"Habis"},
   {name:"Mini V3", price:"62.000", status:"Tersedia"},
@@ -159,7 +147,87 @@ const data = [
   {name:"Super Jumbo V3", price:"102.000", status:"Habis"}
 ];
 
-/* STATUS */
+function getWIBDate(){
+  return new Date(new Date().toLocaleString("en-US", {timeZone:"Asia/Jakarta"}));
+}
+
+function getResetKey(){
+  const wib = getWIBDate();
+
+  if(wib.getHours() < 6){
+    wib.setDate(wib.getDate() - 1);
+  }
+
+  const year = wib.getFullYear();
+  const month = String(wib.getMonth() + 1).padStart(2, '0');
+  const day = String(wib.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+function loadStock(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+    const currentKey = getResetKey();
+
+    if(saved.resetKey !== currentKey){
+      const fresh = {
+        resetKey: currentKey,
+        items: {}
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+      return fresh;
+    }
+
+    return saved;
+  }catch(e){
+    return {
+      resetKey: getResetKey(),
+      items: {}
+    };
+  }
+}
+
+function saveStock(stock){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(stock));
+}
+
+function getSavedStatus(productName){
+  const stock = loadStock();
+
+  if(stock.items && stock.items[productName]){
+    return stock.items[productName];
+  }
+
+  return "Habis";
+}
+
+function setSavedStatus(productName, status){
+  const stock = loadStock();
+
+  if(!stock.items){
+    stock.items = {};
+  }
+
+  if(status === "Tersedia"){
+    stock.items[productName] = "Tersedia";
+  }else{
+    delete stock.items[productName];
+  }
+
+  saveStock(stock);
+}
+
+function syncResetStatus(){
+  const stock = loadStock();
+
+  document.querySelectorAll('.product').forEach((el,i)=>{
+    const p = data[i];
+    el.dataset.status = stock.items[p.name] || "Habis";
+    updateBtn(el);
+  });
+}
+
 function getStatus(s){
   if(s==="Tersedia"){
     return {icon:"🟢",text:"Tersedia",prefix:"✅"}
@@ -167,11 +235,10 @@ function getStatus(s){
   return {icon:"🔴",text:"Habis",prefix:"❌"}
 }
 
-/* ROW */
 function createRow(d){
   const el = document.createElement('div');
   el.className='product';
-  el.dataset.status = d.status;
+  el.dataset.status = getSavedStatus(d.name);
 
   el.innerHTML = `
     <div class="product-name">${d.name}</div>
@@ -181,7 +248,10 @@ function createRow(d){
 
   el.querySelectorAll('.status').forEach(btn=>{
     btn.onclick = ()=>{
-      el.dataset.status = btn.getAttribute('data');
+      const newStatus = btn.getAttribute('data');
+      el.dataset.status = newStatus;
+
+      setSavedStatus(d.name, newStatus);
       updateBtn(el);
       update();
     }
@@ -191,7 +261,6 @@ function createRow(d){
   updateBtn(el);
 }
 
-/* UPDATE BUTTON */
 function updateBtn(el){
   const s = el.dataset.status;
   el.querySelectorAll('.status').forEach(b=>{
@@ -202,29 +271,36 @@ function updateBtn(el){
   });
 }
 
-/* DATE */
 function date(){
   return new Intl.DateTimeFormat('id-ID',{
-    weekday:'long',day:'numeric',month:'long',year:'numeric',
+    weekday:'long',
+    day:'numeric',
+    month:'long',
+    year:'numeric',
     timeZone:'Asia/Jakarta'
   }).format(new Date());
 }
 
 function time(){
   return new Intl.DateTimeFormat('id-ID',{
-    hour:'2-digit',minute:'2-digit',second:'2-digit',
-    hour12:false,timeZone:'Asia/Jakarta'
+    hour:'2-digit',
+    minute:'2-digit',
+    second:'2-digit',
+    hour12:false,
+    timeZone:'Asia/Jakarta'
   }).format(new Date());
 }
 
-/* GENERATE */
 function generate(){
+  syncResetStatus();
+
   let msg = "🔄 UPDATE STOK AKRAB V3 🔄\n";
   msg += "🗓️ "+date()+"\n";
   msg += "⏰Jam, "+time()+" WIB\n";
   msg += "──────────────────────\n\n";
 
   document.querySelectorAll('.product').forEach((el,i)=>{
+
     const p = data[i];
     const s = getStatus(el.dataset.status);
 
@@ -239,23 +315,19 @@ function generate(){
   return msg;
 }
 
-/* UPDATE */
 function update(){
   preview.textContent = generate();
 }
 
-/* COPY */
 function copyText(){
   navigator.clipboard.writeText(generate());
   alert("Copied");
 }
 
-/* WA */
 function sendWA(){
   window.open("https://wa.me/?text="+encodeURIComponent(generate()),"_blank");
 }
 
-/* INIT */
 data.forEach(createRow);
 update();
 setInterval(update,1000);
