@@ -305,8 +305,7 @@ function generate(){
     const s = getStatus(el.dataset.status);
 
     msg += `${s.prefix} *${p.name}*\n`;
-    msg += `┝ Harga: ${p.price}\n`;
-    msg += `┝ Stok: ${s.icon} ${s.text}\n\n`;
+msg += `┝ Stok: ${s.icon} ${s.text}\n\n`;
   });
 
   msg += "──────────────────────\n";
