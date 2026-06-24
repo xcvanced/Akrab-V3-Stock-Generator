@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generator Stok Akrab V3</title>
+<title>Generator Stok Akrab V5</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -135,16 +135,16 @@ body{
 const productsEl = document.getElementById('products');
 const preview = document.getElementById('preview');
 
-const STORAGE_KEY = "akrab_v3_stock_daily_0600";
+const STORAGE_KEY = "akrab_V5_stock_daily_0600";
 
 const data = [
-  {name:"Super Mini V3", price:"50.000", status:"Habis"},
-  {name:"Mini V3", price:"62.000", status:"Tersedia"},
-  {name:"Big V3", price:"67.000", status:"Habis"},
-  {name:"Jumbo V3", price:"77.000", status:"Habis"},
-  {name:"Jumbo Big V3", price:"85.000", status:"Tersedia"},
-  {name:"Jumbo Max V3", price:"90.000", status:"Tersedia"},
-  {name:"Super Jumbo V3", price:"102.000", status:"Habis"}
+  {name:"Super Mini V5", price:"50.000", status:"Habis"},
+  {name:"Mini V5", price:"62.000", status:"Tersedia"},
+  {name:"Big V5", price:"67.000", status:"Habis"},
+  {name:"Jumbo V5", price:"77.000", status:"Habis"},
+  {name:"Jumbo Big V5", price:"85.000", status:"Tersedia"},
+  {name:"Jumbo Max V5", price:"90.000", status:"Tersedia"},
+  {name:"Super Jumbo V5", price:"102.000", status:"Habis"}
 ];
 
 function getWIBDate(){
@@ -294,7 +294,7 @@ function time(){
 function generate(){
   syncResetStatus();
 
-  let msg = "🔄 UPDATE STOK AKRAB V3 🔄\n";
+  let msg = "🔄 UPDATE STOK AKRAB V5 🔄\n";
   msg += "🗓️ "+date()+"\n";
   msg += "⏰Jam, "+time()+" WIB\n";
   msg += "──────────────────────\n\n";
